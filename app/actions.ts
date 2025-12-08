@@ -17,6 +17,7 @@ export interface MatchData {
 }
 
 export interface BasketballMatchData {
+  fixture_id: number;
   home_name: string;
   away_name: string;
   fixture_date: string;
@@ -115,6 +116,36 @@ export async function getCapitalGrowth(): Promise<CapitalData[]> {
   }
 }
 
+export async function getSuccessRate(): Promise<string> {
+  try {
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT 
+          ROUND( 
+            100.0 * SUM(CASE WHEN predict_winner = result THEN 1 ELSE 0 END) 
+            / COUNT(*), 
+            2 
+          ) AS success_rate_percent 
+        FROM ai_eval 
+        WHERE if_bet = 1 
+          AND confidence > 0.6 
+          AND result IS NOT NULL;
+      `;
+      const res = await client.query(query);
+      if (res.rows.length > 0 && res.rows[0].success_rate_percent) {
+        return res.rows[0].success_rate_percent;
+      }
+      return "0";
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Success rate query error:', error);
+    return "0";
+  }
+}
+
 export async function getTopMatches(startUTC: string, endUTC: string): Promise<MatchData[]> {
   try {
     const client = await pool.connect();
@@ -183,6 +214,7 @@ export async function getBasketballMatch(startUTC: string, endUTC: string): Prom
     try {
       const query = `
         SELECT 
+          t2.fixture_id,
           t2.home_name, 
           t2.away_name, 
           t2.fixture_date, 
@@ -217,6 +249,7 @@ export async function getBasketballMatch(startUTC: string, endUTC: string): Prom
       }
 
       return {
+        fixture_id: row.fixture_id,
         home_name: row.home_name,
         away_name: row.away_name,
         fixture_date: row.fixture_date.toISOString(),
@@ -239,6 +272,7 @@ export async function getBasketballSignals(startUTC: string, endUTC: string): Pr
     try {
       const query = `
         SELECT 
+          t2.fixture_id,
           t2.home_name, 
           t2.away_name, 
           t2.fixture_date, 
@@ -260,6 +294,7 @@ export async function getBasketballSignals(startUTC: string, endUTC: string): Pr
       const res = await client.query(query, [startUTC, endUTC]);
       
       return res.rows.map(row => ({
+        fixture_id: row.fixture_id,
         home_name: row.home_name,
         away_name: row.away_name,
         fixture_date: row.fixture_date.toISOString(),

@@ -32,7 +32,7 @@ const i18n = {
   },
 };
 
-import { getTopMatches, getCapitalGrowth, getBasketballMatch, getBasketballSignals, MatchData, CapitalData, BasketballMatchData } from './actions';
+import { getTopMatches, getCapitalGrowth, getBasketballMatch, getBasketballSignals, getSuccessRate, MatchData, CapitalData, BasketballMatchData } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
@@ -42,6 +42,7 @@ export default function Home() {
   const [basketballMatch, setBasketballMatch] = useState<BasketballMatchData | null>(null);
   const [basketballSignals, setBasketballSignals] = useState<BasketballMatchData[]>([]);
   const [capitalData, setCapitalData] = useState<CapitalData[]>([]);
+  const [successRate, setSuccessRate] = useState<string>("0");
 
   useEffect(() => {
     // Load timezones
@@ -61,6 +62,11 @@ export default function Home() {
     getCapitalGrowth()
       .then(data => setCapitalData(data))
       .catch(err => console.error("Failed to load capital data:", err));
+
+    // Load success rate
+    getSuccessRate()
+      .then(rate => setSuccessRate(rate))
+      .catch(err => console.error("Failed to load success rate:", err));
 
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
@@ -269,7 +275,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="text-[10px] text-muted uppercase font-bold">Win Rate</div>
-                  <div className="text-xl font-black text-primary font-mono">62%</div>
+                  <div className="text-xl font-black text-primary font-mono">{successRate}%</div>
                 </div>
               </div>
             </div>
@@ -490,16 +496,18 @@ export default function Home() {
                 <div className="flex-1 overflow-hidden relative h-64 p-3">
                   <div className="space-y-2 animate-scroll-y">
                     {matches.slice(1).map((match, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                        <div>
-                          <div className="font-bold text-primary">{match.home_name} vs {match.away_name}</div>
-                          <div className="text-muted">{match.predict_winner}</div>
+                      <Link key={idx} href={`/football/${match.fixture_id}`} className="block group">
+                        <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm group-hover:shadow-md transition-all cursor-pointer group-hover:border-tech/30">
+                          <div>
+                            <div className="font-bold text-primary group-hover:text-tech transition-colors">{match.home_name} vs {match.away_name}</div>
+                            <div className="text-muted">{match.predict_winner}</div>
+                          </div>
+                          <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                            {match.predict_winner.toLowerCase().includes("home") ? match.home_odd :
+                             match.predict_winner.toLowerCase().includes("away") ? match.away_odd : match.draw_odd}
+                          </span>
                         </div>
-                        <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                          {match.predict_winner.toLowerCase().includes("home") ? match.home_odd :
-                           match.predict_winner.toLowerCase().includes("away") ? match.away_odd : match.draw_odd}
-                        </span>
-                      </div>
+                      </Link>
                     ))}
                     {matches.length <= 1 && (
                       <div className="text-center text-slate-400 text-[10px] p-4">
@@ -538,9 +546,14 @@ export default function Home() {
                 <div className="text-[10px] text-muted font-mono mt-1">v2.0 · Props</div>
               </div>
               <div className="lg:col-span-6 p-0 border-b lg:border-b-0 lg:border-r border-border bg-[#0F172A] relative flex flex-col">
-                <div className="absolute top-3 right-3 bg-nba/20 text-nba text-[10px] font-bold px-2 py-0.5 rounded border border-nba/30 z-10">
-                  RAW TELEGRAM OUTPUT
-                </div>
+                {basketballMatch && (
+                  <Link
+                    href={`/basketball/${basketballMatch.fixture_id}`}
+                    className="absolute top-3 right-3 bg-nba/20 text-nba text-[10px] font-bold px-2 py-0.5 rounded border border-nba/30 z-10 hover:bg-nba/30 transition-colors cursor-pointer"
+                  >
+                    CLICK TO SEE REPORT
+                  </Link>
+                )}
                 <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
                   {basketballMatch ? (
                     <>
@@ -603,22 +616,24 @@ export default function Home() {
                 <div className="flex-1 p-3 space-y-2 overflow-auto custom-scrollbar">
                   {basketballSignals.length > 0 ? (
                     basketballSignals.map((signal, index) => (
-                      <div key={index} className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                        <div>
-                          <div className="font-bold text-primary">{signal.home_name} vs {signal.away_name}</div>
-                          <div className="text-muted flex gap-2">
-                            <span>{new Date(signal.fixture_date).toLocaleTimeString('en-GB', {
-                              timeZone: selectedTimeZone,
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}</span>
-                            <span className="text-nba font-semibold">{signal.predict_winner}</span>
+                      <Link key={index} href={`/basketball/${signal.fixture_id}`} className="block group">
+                        <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm group-hover:shadow-md transition-all cursor-pointer group-hover:border-nba/30">
+                          <div>
+                            <div className="font-bold text-primary group-hover:text-nba transition-colors">{signal.home_name} vs {signal.away_name}</div>
+                            <div className="text-muted flex gap-2">
+                              <span>{new Date(signal.fixture_date).toLocaleTimeString('en-GB', {
+                                timeZone: selectedTimeZone,
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}</span>
+                              <span className="text-nba font-semibold">{signal.predict_winner}</span>
+                            </div>
                           </div>
+                          <span className="font-bold text-white bg-nba px-1.5 py-0.5 rounded">
+                            {Math.round(signal.confidence * 100)}%
+                          </span>
                         </div>
-                        <span className="font-bold text-white bg-nba px-1.5 py-0.5 rounded">
-                          {Math.round(signal.confidence * 100)}%
-                        </span>
-                      </div>
+                      </Link>
                     ))
                   ) : (
                     <div className="text-center text-slate-400 text-xs py-4">
