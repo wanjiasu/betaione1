@@ -16,7 +16,7 @@ export interface MatchData {
   fixture_date: string;
 }
 
-export async function getTopMatch(startUTC: string, endUTC: string): Promise<MatchData | null> {
+export async function getTopMatches(startUTC: string, endUTC: string): Promise<MatchData[]> {
   try {
     const client = await pool.connect();
     try {
@@ -43,14 +43,12 @@ export async function getTopMatch(startUTC: string, endUTC: string): Promise<Mat
            WHERE fixture_date BETWEEN $1 AND $2) t2 
         ON t1.fixture_id = t2.fixture_id
         ORDER BY t1.confidence DESC
-        LIMIT 1;
+        LIMIT 5;
       `;
       
       const res = await client.query(query, [startUTC, endUTC]);
       
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        
+      return res.rows.map(row => {
         // Transform predict_winner code to string
         let winnerStr = "Draw";
         if (Number(row.predict_winner) === 1) winnerStr = "Home Win";
@@ -70,13 +68,12 @@ export async function getTopMatch(startUTC: string, endUTC: string): Promise<Mat
           predict_winner: winnerStr,
           key_tag_evidence: evidence
         };
-      }
-      return null;
+      });
     } finally {
       client.release();
     }
   } catch (error) {
     console.error('Database query error:', error);
-    return null;
+    return [];
   }
 }

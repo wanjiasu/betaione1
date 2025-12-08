@@ -24,20 +24,20 @@ const i18n = {
   zh: {
     nav_cta: "连接机器人",
     hero_badge: "实盘实验 #001",
-    hero_title_1: "停止赌博。",
-    hero_title_2: "开始投资。",
+    hero_title_1: "智能AGENT。",
+    hero_title_2: "智慧投资。",
     hero_sub: "像量化机构一样分配资金。见证 $1,000 到 $9,000+ 的真实旅程。",
     blog_title: "市场情报",
   },
 };
 
-import { getTopMatch, MatchData } from './actions';
+import { getTopMatches, MatchData } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
   const [timeZones, setTimeZones] = useState<TimeZone[]>([]);
   const [selectedTimeZone, setSelectedTimeZone] = useState<string>("Asia/Shanghai");
-  const [matchData, setMatchData] = useState<MatchData | null>(null);
+  const [matches, setMatches] = useState<MatchData[]>([]);
 
   useEffect(() => {
     // Load timezones
@@ -90,15 +90,16 @@ export default function Home() {
     // 4. End is +48h - 1ms (Today + Tomorrow)
     const endUTC = new Date(localMidnight + (48 * 3600 * 1000) - 1 - (offset * 3600 * 1000));
     
-    getTopMatch(startUTC.toISOString(), endUTC.toISOString())
+    getTopMatches(startUTC.toISOString(), endUTC.toISOString())
       .then(data => {
-        setMatchData(data);
+        setMatches(data);
       })
       .catch(err => console.error("Failed to fetch match data:", err));
       
   }, [selectedTimeZone, timeZones]);
 
   const t = i18n[lang];
+  const matchData = matches.length > 0 ? matches[0] : null;
 
   return (
     <>
@@ -438,51 +439,23 @@ export default function Home() {
 
                 <div className="flex-1 overflow-hidden relative h-64 p-3">
                   <div className="space-y-2 animate-scroll-y">
-                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                      <div>
-                        <div className="font-bold text-primary">FC Augsburg</div>
-                        <div className="text-muted">Away Win</div>
+                    {matches.slice(1).map((match, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                        <div>
+                          <div className="font-bold text-primary">{match.home_name} vs {match.away_name}</div>
+                          <div className="text-muted">{match.predict_winner}</div>
+                        </div>
+                        <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                          {match.predict_winner.toLowerCase().includes("home") ? match.home_odd :
+                           match.predict_winner.toLowerCase().includes("away") ? match.away_odd : match.draw_odd}
+                        </span>
                       </div>
-                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                        1.88
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                      <div>
-                        <div className="font-bold text-primary">Heidenheim</div>
-                        <div className="text-muted">Away Win</div>
+                    ))}
+                    {matches.length <= 1 && (
+                      <div className="text-center text-slate-400 text-[10px] p-4">
+                        No more matches for today.
                       </div>
-                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                        1.91
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                      <div>
-                        <div className="font-bold text-primary">FC Köln</div>
-                        <div className="text-muted">Home Win</div>
-                      </div>
-                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                        1.95
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                      <div>
-                        <div className="font-bold text-primary">Man City</div>
-                        <div className="text-muted">Home Win</div>
-                      </div>
-                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                        1.25
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                      <div>
-                        <div className="font-bold text-primary">FC Augsburg</div>
-                        <div className="text-muted">Away Win</div>
-                      </div>
-                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                        1.88
-                      </span>
-                    </div>
+                    )}
                   </div>
                 </div>
 
