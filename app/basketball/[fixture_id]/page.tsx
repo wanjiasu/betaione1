@@ -60,15 +60,17 @@ export default function BasketballFixturePage({ params }: { params: Promise<{ fi
       .then(data => setCapitalData(data))
       .catch(err => console.error("Failed to load capital data:", err));
 
-    // Load basketball report
-    getBasketballFixtureReport(fixture_id)
-      .then(setReport)
-      .catch(err => console.error("Failed to load report:", err));
-
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
       setLang("zh");
     }
+  }, []);
+
+  useEffect(() => {
+    // Load basketball report
+    getBasketballFixtureReport(fixture_id)
+      .then(setReport)
+      .catch(err => console.error("Failed to load report:", err));
   }, [fixture_id]);
 
   const t = i18n[lang];

@@ -60,15 +60,17 @@ export default function FixturePage({ params }: { params: Promise<{ fixture_id: 
       .then(data => setCapitalData(data))
       .catch(err => console.error("Failed to load capital data:", err));
 
-    // Load report
-    getFootballFixtureReport(fixture_id)
-      .then(setReport)
-      .catch(err => console.error("Failed to load report:", err));
-
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
       setLang("zh");
     }
+  }, []);
+
+  useEffect(() => {
+    // Load report
+    getFootballFixtureReport(fixture_id)
+      .then(setReport)
+      .catch(err => console.error("Failed to load report:", err));
   }, [fixture_id]);
 
   const t = i18n[lang];
