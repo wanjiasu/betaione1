@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { Send, Wifi, Terminal, Zap, PlusCircle, Plus } from "lucide-react";
+import { Send } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getCapitalGrowth, getBasketballFixtureReport, CapitalData } from "../../actions";
@@ -62,6 +62,7 @@ export default function BasketballFixturePage({ params }: { params: Promise<{ fi
 
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLang("zh");
     }
   }, []);
