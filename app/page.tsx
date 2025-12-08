@@ -1,65 +1,584 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Send, Wifi, Terminal, Zap, PlusCircle, Plus } from "lucide-react";
+
+type Language = "en" | "zh";
+
+const i18n = {
+  en: {
+    nav_cta: "Telegram",
+    hero_badge: "LIVE EXPERIMENT #001",
+    hero_title_1: "Stop Betting.",
+    hero_title_2: "Start Investing.",
+    hero_sub:
+      "We size everything like a quant book, not a degen. Follow the verified journey from $1,000 to $9,000+.",
+    blog_title: "Market Intelligence",
+  },
+  zh: {
+    nav_cta: "连接机器人",
+    hero_badge: "实盘实验 #001",
+    hero_title_1: "停止赌博。",
+    hero_title_2: "开始投资。",
+    hero_sub: "像量化机构一样分配资金。见证 $1,000 到 $9,000+ 的真实旅程。",
+    blog_title: "市场情报",
+  },
+};
 
 export default function Home() {
+  const [lang, setLang] = useState<Language>("en");
+
+  useEffect(() => {
+    const userLang = navigator.language;
+    if (userLang && userLang.startsWith("zh")) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLang("zh");
+    }
+  }, []);
+
+  const t = i18n[lang];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <div className="fintech-bg absolute inset-0 pointer-events-none fixed"></div>
+
+      <div className="bg-primary text-white h-9 flex items-center overflow-hidden relative z-50 text-[11px] font-medium border-b border-slate-800">
+        <div className="absolute left-0 bg-profit px-4 h-full flex items-center z-10 font-bold tracking-widest shadow-lg">
+          LIVE
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="whitespace-nowrap flex items-center pl-4 animate-scroll w-max font-mono">
+          <div className="flex gap-10 items-center pr-10">
+            <span className="text-slate-300">
+              ⚽ Alpha: <span className="text-profit font-bold">Total +816% ROI</span>
+            </span>
+            <span className="text-slate-300">
+              📉 Today: <span className="text-loss font-bold">Man Utd (-20% DD)</span>
+            </span>
+            <span className="text-slate-300">
+              🔔 NEW SIGNAL:{" "}
+              <span className="text-white font-bold">Villarreal vs Getafe (Home Win)</span>
+            </span>
+            <span className="text-slate-300">
+              📈 Portfolio: <span className="text-profit font-bold">All Time High</span>
+            </span>
+          </div>
+          <div className="flex gap-10 items-center pr-10">
+            <span className="text-slate-300">
+              ⚽ Alpha: <span className="text-profit font-bold">Total +816% ROI</span>
+            </span>
+            <span className="text-slate-300">
+              📉 Today: <span className="text-loss font-bold">Man Utd (-20% DD)</span>
+            </span>
+            <span className="text-slate-300">
+              🔔 NEW SIGNAL:{" "}
+              <span className="text-white font-bold">Villarreal vs Getafe (Home Win)</span>
+            </span>
+            <span className="text-slate-300">
+              📈 Portfolio: <span className="text-profit font-bold">All Time High</span>
+            </span>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <nav className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b border-border h-16">
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-tech rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm">
+              β
+            </div>
+            <div className="font-bold text-xl tracking-tight text-primary">
+              beta<span className="text-tech">ione</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative hidden sm:block">
+              <select
+                id="lang-select"
+                value={lang}
+                onChange={(e) => setLang(e.target.value as Language)}
+                className="bg-slate-50 text-xs font-bold text-muted border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-tech cursor-pointer hover:bg-slate-100"
+              >
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+              </select>
+            </div>
+            <a
+              href="https://t.me/betaionebot"
+              target="_blank"
+              className="bg-primary hover:bg-slate-800 text-white px-5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-lg transform active:scale-95"
+            >
+              <Send className="w-3 h-3" />
+              <span>{t.nav_cta}</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <section className="pt-10 pb-16 px-4 relative z-10 bg-gradient-to-b from-white to-slate-50 border-b border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-8 lg:gap-12">
+            <div className="lg:w-5/12 pt-2">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-blue-50 text-tech text-[10px] font-bold mb-4 border border-blue-100">
+                <span className="w-1.5 h-1.5 bg-tech rounded-full animate-pulse"></span>
+                <span>{t.hero_badge}</span>
+              </div>
+              <h1 className="text-4xl lg:text-5xl font-black text-primary tracking-tight leading-[1.1] mb-4">
+                <span>{t.hero_title_1}</span> <br />
+                <span>{t.hero_title_2}</span>
+              </h1>
+              <p className="text-muted text-sm leading-relaxed max-w-md mb-6">
+                {t.hero_sub}
+              </p>
+
+              <div className="flex gap-6 border-t border-border pt-6">
+                <div>
+                  <div className="text-[10px] text-muted uppercase font-bold">Total ROI</div>
+                  <div className="text-xl font-black text-profit font-mono">+816%</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted uppercase font-bold">Win Rate</div>
+                  <div className="text-xl font-black text-primary font-mono">62%</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full lg:w-7/12 bg-chartBg border border-slate-700 rounded-xl shadow-xl relative overflow-hidden text-white flex flex-col md:flex-row h-auto min-h-[280px]">
+              <div className="md:w-5/12 p-6 border-b md:border-b-0 md:border-r border-slate-700 bg-slate-900/50 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Capital Pool (Virtual)
+                  </h3>
+                  <div className="space-y-5">
+                    <div>
+                      <div className="flex justify-between text-[10px] text-slate-500 font-mono mb-1">
+                        <span>START (Day 1)</span>
+                        <span>CURRENT (Day 58)</span>
+                      </div>
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-sm text-slate-400 font-mono">$1,000</span>
+                        <span className="text-xs text-slate-600">→</span>
+                        <span className="text-2xl font-black text-white font-mono">$9,164.96</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                      <div className="text-[10px] text-red-400 font-bold mb-1">
+                        LAST 24H ACTION (DEC 5)
+                      </div>
+                      <div className="text-[10px] text-slate-300 font-mono leading-tight space-y-1">
+                        <div className="flex justify-between">
+                          <span>Man Utd ML @ 1.46</span> <span>❌</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Result:</span>{" "}
+                          <span className="text-red-400 font-bold">-20% Drawdown</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:w-7/12 relative h-64 md:h-auto p-4 bg-slate-800/20">
+                <div className="absolute top-4 right-4 z-10 flex bg-slate-800 p-0.5 rounded-lg border border-slate-600">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-profit text-white">
+                    Real PnL
+                  </span>
+                </div>
+                <svg
+                  viewBox="0 0 600 300"
+                  className="w-full h-full overflow-visible"
+                  preserveAspectRatio="none"
+                >
+                  <g className="chart-grid">
+                    <line x1="0" y1="50" x2="600" y2="50" />
+                    <line x1="0" y1="120" x2="600" y2="120" />
+                    <line x1="0" y1="190" x2="600" y2="190" />
+                    <line x1="0" y1="260" x2="600" y2="260" />
+                  </g>
+                  <g className="chart-axis">
+                    <text x="10" y="45">
+                      $12k
+                    </text>
+                    <text x="10" y="255">
+                      $1k
+                    </text>
+                    <text x="560" y="285">
+                      Day 58
+                    </text>
+                  </g>
+                  <path
+                    d="M10,260 L30,250 L50,255 L70,230 L90,240 L110,210 L130,220 L150,190 L170,160 L190,180 L210,150 L230,170 L250,140 L270,110 L290,130 L310,100 L330,110 L350,90 L370,100 L390,70 L410,80 L430,50 L450,70 L470,40 L490,60 L510,30 L530,20 L550,10 L560,90"
+                    fill="none"
+                    stroke="#059669"
+                    strokeWidth="2.5"
+                    className="chart-line"
+                  />
+                  <line x1="550" y1="10" x2="560" y2="90" stroke="#DC2626" strokeWidth="3" />
+                  <circle cx="10" cy="260" r="3" fill="#059669" />
+                  <circle cx="550" cy="10" r="4" fill="#fff" />
+                  <circle cx="560" cy="90" r="4" fill="#DC2626" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 relative z-20 pb-16 -mt-8">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-primary">Your Investment Team</h2>
+            <p className="text-muted text-sm">Active Agents analyzing the market right now.</p>
+          </div>
+
+          <div className="bg-surface border border-border rounded-2xl shadow-soft overflow-hidden relative">
+            <div className="bg-slate-50 border-b border-border px-4 py-2 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-muted gap-2 sm:gap-0">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-tech rounded-full animate-pulse"></span> AGENT:
+                FOOTBALL ALPHA v4.3
+              </div>
+              <div className="flex items-center gap-2">
+                <Wifi className="w-3 h-3" /> LIVE FEED: ESTADIO DE LA CERAMICA
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[420px]">
+              <div className="lg:col-span-3 p-6 border-b lg:border-b-0 lg:border-r border-border bg-slate-50/40 flex flex-col">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-lg bg-white border border-border shadow-sm flex items-center justify-center text-2xl shrink-0">
+                    ⚽
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-primary text-sm">Football Alpha</h3>
+                    <div className="text-[10px] text-muted font-mono mt-0.5">
+                      Value Model · xG
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[10px] font-bold text-muted uppercase mb-2 flex items-center gap-2">
+                  <Terminal className="w-3 h-3" /> Logic Stream
+                </div>
+
+                <div className="flex-1 bg-primary rounded-xl p-4 font-mono text-[10px] text-gray-300 relative shadow-inner flex flex-col overflow-hidden">
+                  <div className="terminal-scan"></div>
+                  <div className="space-y-3 leading-relaxed z-10 overflow-y-auto no-scrollbar">
+                    <div>
+                      <div className="text-muted">&gt; Analyzing Home Form...</div>
+                      <div className="text-white pl-2 border-l border-slate-600 ml-1">
+                        Villarreal elite home record (6-1-0). Goals 18:4.
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-muted">&gt; Analyzing Away Form...</div>
+                      <div className="text-slate-400 pl-2 border-l border-slate-600 ml-1">
+                        Getafe away form uneven (3-0-4).
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-muted">&gt; Calculating EV...</div>
+                      <div className="text-profit pl-2 border-l border-profit ml-1">
+                        Model: 74% Win Prob vs Market 61%. Edge Found.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 p-0 border-b lg:border-b-0 lg:border-r border-border bg-slate-900 relative flex flex-col">
+                <div className="absolute top-3 right-3 bg-profit/20 text-profit text-[10px] font-bold px-2 py-0.5 rounded border border-profit/30 z-10">
+                  RAW TELEGRAM SIGNAL
+                </div>
+
+                <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
+                  <p className="mb-2">
+                    ⚽️ <span className="font-bold text-white">Match: Villarreal vs Getafe</span>
+                  </p>
+                  <p className="mb-2">🕒 Kickoff: 2025-12-06 21:00</p>
+                  <p className="mb-4">
+                    🏆 Predicted Result:{" "}
+                    <span className="text-white font-bold bg-tech/50 px-1 rounded">
+                      Home Win
+                    </span>
+                    <br />
+                    🎯 Confidence: <span className="text-profit font-bold">74%</span>
+                  </p>
+
+                  <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
+                    💡 Key Points:
+                  </p>
+                  <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                    <li>Villarreal elite home record (6-1-0).</li>
+                    <li>Recent form: 5 consecutive league wins.</li>
+                    <li>Getafe struggling against top-half teams.</li>
+                  </ul>
+
+                  <p className="mt-4 border-t border-slate-700 pt-2">
+                    💰 Odds: <span className="text-white font-bold">1.62</span> (Implied 61%)
+                  </p>
+                </div>
+
+                <div className="p-4 border-t border-slate-700 bg-slate-800/50 text-center">
+                  <a
+                    href="https://t.me/betaionebot"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-tech hover:text-white transition group"
+                  >
+                    <Zap className="w-3 h-3 group-hover:fill-current" /> Sync to Telegram
+                  </a>
+                </div>
+              </div>
+
+              <div className="lg:col-span-3 bg-slate-50 flex flex-col">
+                <div className="p-3 border-b border-border bg-white flex justify-between items-center">
+                  <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                    More Today
+                  </h4>
+                  <span className="text-[10px] font-bold text-tech bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                    4 Matches
+                  </span>
+                </div>
+
+                <div className="flex-1 overflow-hidden relative h-64 p-3">
+                  <div className="space-y-2 animate-scroll-y">
+                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                      <div>
+                        <div className="font-bold text-primary">FC Augsburg</div>
+                        <div className="text-muted">Away Win</div>
+                      </div>
+                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                        1.88
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                      <div>
+                        <div className="font-bold text-primary">Heidenheim</div>
+                        <div className="text-muted">Away Win</div>
+                      </div>
+                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                        1.91
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                      <div>
+                        <div className="font-bold text-primary">FC Köln</div>
+                        <div className="text-muted">Home Win</div>
+                      </div>
+                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                        1.95
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                      <div>
+                        <div className="font-bold text-primary">Man City</div>
+                        <div className="text-muted">Home Win</div>
+                      </div>
+                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                        1.25
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                      <div>
+                        <div className="font-bold text-primary">FC Augsburg</div>
+                        <div className="text-muted">Away Win</div>
+                      </div>
+                      <span className="font-bold text-tech bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                        1.88
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 border-t border-border bg-white mt-auto text-center">
+                  <a
+                    href="https://t.me/betaionebot"
+                    className="inline-flex items-center justify-center gap-1 text-xs font-bold text-nba hover:underline"
+                  >
+                    Add Agent for Full List <PlusCircle className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-surface border border-border rounded-2xl shadow-soft overflow-hidden relative group opacity-90 hover:opacity-100 transition">
+            <div className="bg-slate-50 border-b border-border px-4 py-2 flex justify-between items-center text-[10px] font-mono text-muted">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-nba rounded-full animate-pulse-slow"></span> AGENT: NBA
+                QUANT
+              </div>
+              <div>SCANNED: 8,102 PROPS</div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[350px]">
+              <div className="lg:col-span-3 p-6 border-b lg:border-b-0 lg:border-r border-border bg-slate-50/40 flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-2xl bg-white border border-border shadow-sm flex items-center justify-center text-3xl mb-4">
+                  🏀
+                </div>
+                <h3 className="font-bold text-primary text-lg">NBA Quant</h3>
+                <div className="text-[10px] text-muted font-mono mt-1">v2.0 · Props</div>
+              </div>
+              <div className="lg:col-span-6 p-0 border-b lg:border-b-0 lg:border-r border-border bg-[#0F172A] relative flex flex-col">
+                <div className="absolute top-3 right-3 bg-nba/20 text-nba text-[10px] font-bold px-2 py-0.5 rounded border border-nba/30 z-10">
+                  RAW TELEGRAM OUTPUT
+                </div>
+                <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
+                  <p className="mb-2">
+                    🏀 <span className="font-bold text-white">Match: Lakers vs Suns</span>
+                  </p>
+                  <p className="mb-4">
+                    🏆 Prediction:{" "}
+                    <span className="text-white font-bold bg-nba/50 px-1 rounded">
+                      UNDER 228.5
+                    </span>
+                    <br />
+                    🎯 Confidence: <span className="text-nba font-bold">88%</span>
+                  </p>
+                  <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
+                    💡 Analysis:
+                  </p>
+                  <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                    <li>Fatigue Alert: Lakers on B2B + Altitude.</li>
+                    <li>Pace: Projected drop of 4.5 possessions/game.</li>
+                    <li>Public Sentiment: 70% Bets on OVER (Contrarian).</li>
+                  </ul>
+                </div>
+                <div className="p-3 border-t border-slate-700 bg-slate-800/50 text-center">
+                  <a
+                    href="https://t.me/betaionebot"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-nba hover:text-white transition"
+                  >
+                    <Zap className="w-3 h-3" /> Sync to Telegram
+                  </a>
+                </div>
+              </div>
+              <div className="lg:col-span-3 bg-slate-50 flex flex-col">
+                <div className="p-3 border-b border-border bg-white flex justify-between items-center">
+                  <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                    Signals
+                  </h4>
+                  <span className="text-[10px] font-bold text-profit bg-green-50 px-2 py-0.5 rounded border border-green-100">
+                    2W-0L
+                  </span>
+                </div>
+                <div className="flex-1 p-3 space-y-2">
+                  <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                    <div>
+                      <div className="font-bold text-primary">Curry O25.5</div>
+                      <div className="text-muted">Yesterday</div>
+                    </div>
+                    <span className="font-bold text-profit bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
+                      WIN
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                    <div>
+                      <div className="font-bold text-primary">LeBron U24.5</div>
+                      <div className="text-muted">Yesterday</div>
+                    </div>
+                    <span className="font-bold text-profit bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
+                      WIN
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 bg-white border-t border-border">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-primary">Automate Your Edge</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex flex-col items-center text-center group">
+              <div className="w-10 h-10 bg-blue-50 text-tech font-black flex items-center justify-center rounded-xl mb-3 shadow-sm group-hover:scale-110 transition">
+                1
+              </div>
+              <h3 className="font-bold text-primary text-sm mb-1">Select an Agent</h3>
+              <p className="text-xs text-muted max-w-xs">
+                Choose between Football Alpha or NBA Quant.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center group">
+              <div className="w-10 h-10 bg-primary text-white font-black flex items-center justify-center rounded-xl mb-3 shadow-sm group-hover:scale-110 transition">
+                2
+              </div>
+              <h3 className="font-bold text-primary text-sm mb-1">Sync to Telegram</h3>
+              <p className="text-xs text-muted max-w-xs">
+                One click launch. Instant portfolio sync.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center group">
+              <div className="w-10 h-10 bg-profit text-white font-black flex items-center justify-center rounded-xl mb-3 shadow-sm group-hover:scale-110 transition">
+                3
+              </div>
+              <h3 className="font-bold text-primary text-sm mb-1">Receive Live Signals</h3>
+              <p className="text-xs text-muted max-w-xs">
+                Get push notifications with staking size.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 bg-bg border-t border-border">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-4">{t.blog_title}</h2>
+            <div className="space-y-3">
+              <article className="p-4 border border-border rounded-lg bg-surface hover:shadow-md transition cursor-pointer">
+                <div className="text-[10px] text-tech font-bold mb-1">STRATEGY</div>
+                <h3 className="font-bold text-primary text-sm mb-1">
+                  Understanding &quot;Closing Line Value&quot;
+                </h3>
+                <p className="text-xs text-muted">
+                  Why beating the closing line is the only metric that matters.
+                </p>
+              </article>
+              <article className="p-4 border border-border rounded-lg bg-surface hover:shadow-md transition cursor-pointer">
+                <div className="text-[10px] text-tech font-bold mb-1">DATA SCIENCE</div>
+                <h3 className="font-bold text-primary text-sm mb-1">xG vs Actual Goals</h3>
+                <p className="text-xs text-muted">
+                  Finding value in teams underperforming expected metrics.
+                </p>
+              </article>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-4">FAQ</h2>
+            <div className="space-y-2">
+              <details className="group bg-surface border border-border rounded-lg p-3 cursor-pointer">
+                <summary className="flex justify-between items-center font-bold text-xs text-primary list-none">
+                  How does the AI predict?{" "}
+                  <Plus className="w-3 h-3 text-muted group-open:rotate-45 transition" />
+                </summary>
+                <p className="text-xs text-muted mt-2 leading-relaxed">
+                  Our models analyze over 150 data points per match, including player tracking
+                  data and historical odds movement.
+                </p>
+              </details>
+              <details className="group bg-surface border border-border rounded-lg p-3 cursor-pointer">
+                <summary className="flex justify-between items-center font-bold text-xs text-primary list-none">
+                  Guaranteed wins?{" "}
+                  <Plus className="w-3 h-3 text-muted group-open:rotate-45 transition" />
+                </summary>
+                <p className="text-xs text-muted mt-2 leading-relaxed">
+                  No. We provide mathematical edge (+EV). We track all results transparently to
+                  help you manage risk.
+                </p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="py-8 bg-primary text-slate-400 text-[10px] text-center">
+        <p>&copy; 2025 Betaione Systems. Not a bookmaker. 18+ Only.</p>
+      </footer>
+    </>
   );
 }
