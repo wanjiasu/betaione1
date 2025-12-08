@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { Send, Wifi, Terminal, Zap, PlusCircle, Plus } from "lucide-react";
 
 type Language = "en" | "zh";
@@ -410,9 +411,14 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-6 p-0 border-b lg:border-b-0 lg:border-r border-border bg-slate-900 relative flex flex-col">
-                <div className="absolute top-3 right-3 bg-profit/20 text-profit text-[10px] font-bold px-2 py-0.5 rounded border border-profit/30 z-10">
-                  RAW TELEGRAM SIGNAL
-                </div>
+                {matchData && (
+                  <Link 
+                    href={`/football/${matchData.fixture_id}`}
+                    className="absolute top-3 right-3 bg-profit/20 text-profit text-[10px] font-bold px-2 py-0.5 rounded border border-profit/30 z-10 hover:bg-profit/30 transition-colors cursor-pointer"
+                  >
+                    CLICK TO SEE REPORT
+                  </Link>
+                )}
 
                 <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
                   {matchData ? (
