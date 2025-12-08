@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Shanghai",
+    "value": "Asia/Shanghai",
+    "offset": 8
+  },
+  {
+    "label": "Philippines",
+    "value": "Asia/Manila",
+    "offset": 8
+  },
+  {
+    "label": "US English",
+    "value": "America/New_York",
+    "offset": -5
+  }
+]

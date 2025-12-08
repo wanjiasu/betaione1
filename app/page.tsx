@@ -5,6 +5,12 @@ import { Send, Wifi, Terminal, Zap, PlusCircle, Plus } from "lucide-react";
 
 type Language = "en" | "zh";
 
+interface TimeZone {
+  label: string;
+  value: string;
+  offset: number;
+}
+
 const i18n = {
   en: {
     nav_cta: "Telegram",
@@ -25,16 +31,72 @@ const i18n = {
   },
 };
 
+import { getTopMatch, MatchData } from './actions';
+
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
+  const [timeZones, setTimeZones] = useState<TimeZone[]>([]);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<string>("Asia/Shanghai");
+  const [matchData, setMatchData] = useState<MatchData | null>(null);
 
   useEffect(() => {
+    // Load timezones
+    fetch("/time_offset.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setTimeZones(data);
+        if (data.length > 0) {
+          // Keep Shanghai as default if available, or first one
+          const shanghai = data.find((tz: TimeZone) => tz.value === "Asia/Shanghai");
+          setSelectedTimeZone(shanghai ? shanghai.value : data[0].value);
+        }
+      })
+      .catch((err) => console.error("Failed to load timezones:", err));
+
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLang("zh");
     }
   }, []);
+
+  useEffect(() => {
+    if (!selectedTimeZone || timeZones.length === 0) return;
+
+    const tzParams = timeZones.find(tz => tz.value === selectedTimeZone);
+    if (!tzParams) return;
+
+    const offset = tzParams.offset;
+    const now = new Date();
+    
+    // Calculate local midnight
+    // We want "Today 00:00" in the selected timezone
+    // UTC time + offset*3600*1000 = Local Time
+    // We want to find a UTC time T such that (T + offset) is YYYY-MM-DD 00:00:00
+    
+    // 1. Get current time in target timezone components
+    // We can use the offset to approximate "Today"
+    const utcNow = now.getTime();
+    const localTimeNow = utcNow + (offset * 3600 * 1000);
+    const localDateObj = new Date(localTimeNow);
+    
+    // 2. Set to midnight (start of today in local time)
+    localDateObj.setUTCHours(0, 0, 0, 0);
+    const localMidnight = localDateObj.getTime();
+    
+    // 3. Convert back to UTC
+    const startUTC = new Date(localMidnight - (offset * 3600 * 1000));
+    
+    // 4. End is +48h - 1ms (Today + Tomorrow)
+    const endUTC = new Date(localMidnight + (48 * 3600 * 1000) - 1 - (offset * 3600 * 1000));
+    
+    getTopMatch(startUTC.toISOString(), endUTC.toISOString())
+      .then(data => {
+        setMatchData(data);
+      })
+      .catch(err => console.error("Failed to fetch match data:", err));
+      
+  }, [selectedTimeZone, timeZones]);
 
   const t = i18n[lang];
 
@@ -91,16 +153,32 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="relative hidden sm:block">
-              <select
-                id="lang-select"
-                value={lang}
-                onChange={(e) => setLang(e.target.value as Language)}
-                className="bg-slate-50 text-xs font-bold text-muted border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-tech cursor-pointer hover:bg-slate-100"
-              >
-                <option value="en">English</option>
-                <option value="zh">中文</option>
-              </select>
+            <div className="flex items-center gap-2">
+              <div className="relative hidden sm:block">
+                <select
+                  id="timezone-select"
+                  value={selectedTimeZone}
+                  onChange={(e) => setSelectedTimeZone(e.target.value)}
+                  className="bg-slate-50 text-xs font-bold text-muted border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-tech cursor-pointer hover:bg-slate-100"
+                >
+                  {timeZones.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative hidden sm:block">
+                <select
+                  id="lang-select"
+                  value={lang}
+                  onChange={(e) => setLang(e.target.value as Language)}
+                  className="bg-slate-50 text-xs font-bold text-muted border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-tech cursor-pointer hover:bg-slate-100"
+                >
+                  <option value="en">English</option>
+                  <option value="zh">中文</option>
+                </select>
+              </div>
             </div>
             <a
               href="https://t.me/betaionebot"
@@ -292,31 +370,49 @@ export default function Home() {
                 </div>
 
                 <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
-                  <p className="mb-2">
-                    ⚽️ <span className="font-bold text-white">Match: Villarreal vs Getafe</span>
-                  </p>
-                  <p className="mb-2">🕒 Kickoff: 2025-12-06 21:00</p>
-                  <p className="mb-4">
-                    🏆 Predicted Result:{" "}
-                    <span className="text-white font-bold bg-tech/50 px-1 rounded">
-                      Home Win
-                    </span>
-                    <br />
-                    🎯 Confidence: <span className="text-profit font-bold">74%</span>
-                  </p>
+                  {matchData ? (
+                    <>
+                      <p className="mb-2">
+                        ⚽️ <span className="font-bold text-white">Match: {matchData.home_name} vs {matchData.away_name}</span>
+                      </p>
+                      <p className="mb-2">🕒 Kickoff: {new Date(matchData.fixture_date).toLocaleString('en-GB', {
+                        timeZone: selectedTimeZone,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '')}</p>
+                      <p className="mb-4">
+                        🏆 Predicted Result:{" "}
+                        <span className="text-white font-bold bg-tech/50 px-1 rounded">
+                          {matchData.predict_winner}
+                        </span>
+                        <br />
+                        🎯 Confidence: <span className="text-profit font-bold">{Math.round(matchData.confidence * 100)}%</span>
+                      </p>
 
-                  <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
-                    💡 Key Points:
-                  </p>
-                  <ul className="list-disc pl-4 space-y-1 text-slate-400">
-                    <li>Villarreal elite home record (6-1-0).</li>
-                    <li>Recent form: 5 consecutive league wins.</li>
-                    <li>Getafe struggling against top-half teams.</li>
-                  </ul>
+                      <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
+                        💡 Key Points:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                        {Array.isArray(matchData.key_tag_evidence) && matchData.key_tag_evidence.length > 0 ? matchData.key_tag_evidence.map((ev, i) => (
+                          <li key={i}>{ev}</li>
+                        )) : <li>{matchData.key_tag_evidence ? String(matchData.key_tag_evidence) : "No key points available."}</li>}
+                      </ul>
 
-                  <p className="mt-4 border-t border-slate-700 pt-2">
-                    💰 Odds: <span className="text-white font-bold">1.62</span> (Implied 61%)
-                  </p>
+                      <p className="mt-4 border-t border-slate-700 pt-2">
+                        💰 Odds: <span className="text-white font-bold">
+                          {matchData.home_odd}/{matchData.draw_odd}/{matchData.away_odd}
+                        </span>
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                      <p>Scanning for high-confidence opportunities...</p>
+                      <p className="text-xs mt-2">Targeting &gt;60% confidence matches</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50 text-center">
