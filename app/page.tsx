@@ -107,11 +107,17 @@ export default function Home() {
   const t = i18n[lang];
   const matchData = matches.length > 0 ? matches[0] : null;
   const lastCapital = capitalData.length > 0 ? capitalData[capitalData.length - 1] : null;
+  const firstCapital = capitalData.length > 0 ? capitalData[0] : null;
   const prevCapital = capitalData.length > 1 ? capitalData[capitalData.length - 2] : null;
   const profitChange = lastCapital && prevCapital 
     ? ((lastCapital.capital - prevCapital.capital) / prevCapital.capital * 100).toFixed(2)
     : "0.00";
   const isProfit = parseFloat(profitChange) >= 0;
+
+  const totalROI = lastCapital && firstCapital
+    ? ((lastCapital.capital - firstCapital.capital) / firstCapital.capital * 100).toFixed(0)
+    : "0";
+  const isTotalProfit = parseFloat(totalROI) >= 0;
 
   // Chart Generation Logic
   const chartPoints = useMemo(() => {
@@ -146,7 +152,7 @@ export default function Home() {
         <div className="whitespace-nowrap flex items-center pl-4 animate-scroll w-max font-mono">
           <div className="flex gap-10 items-center pr-10">
             <span className="text-slate-300">
-              ⚽ Alpha: <span className="text-profit font-bold">Total +816% ROI</span>
+              ⚽ Alpha: <span className={`${isTotalProfit ? "text-profit" : "text-red-400"} font-bold`}>Total {isTotalProfit ? "+" : ""}{totalROI}% ROI</span>
             </span>
             <span className="text-slate-300">
               📉 Today: <span className="text-loss font-bold">Man Utd (-20% DD)</span>
@@ -161,7 +167,7 @@ export default function Home() {
           </div>
           <div className="flex gap-10 items-center pr-10">
             <span className="text-slate-300">
-              ⚽ Alpha: <span className="text-profit font-bold">Total +816% ROI</span>
+              ⚽ Alpha: <span className={`${isTotalProfit ? "text-profit" : "text-red-400"} font-bold`}>Total {isTotalProfit ? "+" : ""}{totalROI}% ROI</span>
             </span>
             <span className="text-slate-300">
               📉 Today: <span className="text-loss font-bold">Man Utd (-20% DD)</span>
@@ -246,7 +252,9 @@ export default function Home() {
               <div className="flex gap-6 border-t border-border pt-6">
                 <div>
                   <div className="text-[10px] text-muted uppercase font-bold">Total ROI</div>
-                  <div className="text-xl font-black text-profit font-mono">+816%</div>
+                  <div className={`text-xl font-black ${isTotalProfit ? "text-profit" : "text-red-400"} font-mono`}>
+                    {isTotalProfit ? "+" : ""}{totalROI}%
+                  </div>
                 </div>
                 <div>
                   <div className="text-[10px] text-muted uppercase font-bold">Win Rate</div>
