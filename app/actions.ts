@@ -1,6 +1,6 @@
 'use server';
 
-import pool from './lib/db';
+import pool, { basketballPool } from './lib/db';
 
 export interface MatchData {
   fixture_id: number;
@@ -14,6 +14,15 @@ export interface MatchData {
   home_name: string;
   away_name: string;
   fixture_date: string;
+}
+
+export interface BasketballMatchData {
+  home_name: string;
+  away_name: string;
+  fixture_date: string;
+  predict_winner: string;
+  confidence: number;
+  key_tag_evidence: string[];
 }
 
 export interface CapitalData {
@@ -165,5 +174,61 @@ export async function getTopMatches(startUTC: string, endUTC: string): Promise<M
   } catch (error) {
     console.error('Database query error:', error);
     return [];
+  }
+}
+
+export async function getBasketballMatch(startUTC: string, endUTC: string): Promise<BasketballMatchData | null> {
+  try {
+    const client = await basketballPool.connect();
+    try {
+      const query = `
+        SELECT 
+          t2.home_name, 
+          t2.away_name, 
+          t2.fixture_date, 
+          t1.predict_winner, 
+          t1.confidence, 
+          t1.key_tag_evidence
+        FROM 
+          (SELECT fixture_id, predict_winner, confidence, key_tag_evidence 
+           FROM ai_eval 
+           WHERE if_bet=1 AND confidence > 0.6) t1 
+        INNER JOIN 
+          (SELECT fixture_id, home_name, away_name, fixture_date, result 
+           FROM fixtures
+           WHERE fixture_date BETWEEN $1 AND $2) t2 
+        ON t1.fixture_id = t2.fixture_id
+        ORDER BY t1.confidence DESC
+        LIMIT 1;
+      `;
+      
+      const res = await client.query(query, [startUTC, endUTC]);
+      
+      if (res.rows.length === 0) return null;
+      
+      const row = res.rows[0];
+      
+      // Transform key_tag_evidence string to array
+      let evidence: string[] = [];
+      if (typeof row.key_tag_evidence === 'string') {
+        evidence = row.key_tag_evidence.split('/').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+      } else if (Array.isArray(row.key_tag_evidence)) {
+        evidence = row.key_tag_evidence;
+      }
+
+      return {
+        home_name: row.home_name,
+        away_name: row.away_name,
+        fixture_date: row.fixture_date.toISOString(),
+        predict_winner: String(row.predict_winner),
+        confidence: parseFloat(row.confidence),
+        key_tag_evidence: evidence
+      };
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Basketball DB query error:', error);
+    return null;
   }
 }

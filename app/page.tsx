@@ -31,13 +31,14 @@ const i18n = {
   },
 };
 
-import { getTopMatches, getCapitalGrowth, MatchData, CapitalData } from './actions';
+import { getTopMatches, getCapitalGrowth, getBasketballMatch, MatchData, CapitalData, BasketballMatchData } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
   const [timeZones, setTimeZones] = useState<TimeZone[]>([]);
   const [selectedTimeZone, setSelectedTimeZone] = useState<string>("Asia/Shanghai");
   const [matches, setMatches] = useState<MatchData[]>([]);
+  const [basketballMatch, setBasketballMatch] = useState<BasketballMatchData | null>(null);
   const [capitalData, setCapitalData] = useState<CapitalData[]>([]);
 
   useEffect(() => {
@@ -101,6 +102,10 @@ export default function Home() {
         setMatches(data);
       })
       .catch(err => console.error("Failed to fetch match data:", err));
+
+    getBasketballMatch(startUTC.toISOString(), endUTC.toISOString())
+      .then(data => setBasketballMatch(data))
+      .catch(err => console.error("Failed to load basketball match:", err));
       
   }, [selectedTimeZone, timeZones]);
 
@@ -526,25 +531,42 @@ export default function Home() {
                   RAW TELEGRAM OUTPUT
                 </div>
                 <div className="flex-1 p-8 font-mono text-xs text-slate-300 overflow-auto custom-scrollbar leading-relaxed">
-                  <p className="mb-2">
-                    🏀 <span className="font-bold text-white">Match: Lakers vs Suns</span>
-                  </p>
-                  <p className="mb-4">
-                    🏆 Prediction:{" "}
-                    <span className="text-white font-bold bg-nba/50 px-1 rounded">
-                      UNDER 228.5
-                    </span>
-                    <br />
-                    🎯 Confidence: <span className="text-nba font-bold">88%</span>
-                  </p>
-                  <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
-                    💡 Analysis:
-                  </p>
-                  <ul className="list-disc pl-4 space-y-1 text-slate-400">
-                    <li>Fatigue Alert: Lakers on B2B + Altitude.</li>
-                    <li>Pace: Projected drop of 4.5 possessions/game.</li>
-                    <li>Public Sentiment: 70% Bets on OVER (Contrarian).</li>
-                  </ul>
+                  {basketballMatch ? (
+                    <>
+                      <p className="mb-2">
+                        🏀 <span className="font-bold text-white">Match: {basketballMatch.home_name} vs {basketballMatch.away_name}</span>
+                      </p>
+                      <p className="mb-2">🕒 Kickoff: {new Date(basketballMatch.fixture_date).toLocaleString('en-GB', {
+                        timeZone: selectedTimeZone,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '')}</p>
+                      <p className="mb-4">
+                        🏆 Prediction:{" "}
+                        <span className="text-white font-bold bg-nba/50 px-1 rounded">
+                          {basketballMatch.predict_winner}
+                        </span>
+                        <br />
+                        🎯 Confidence: <span className="text-nba font-bold">{Math.round(basketballMatch.confidence * 100)}%</span>
+                      </p>
+                      <p className="mb-2 text-slate-400 border-b border-slate-700 pb-1">
+                        💡 Analysis:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                        {Array.isArray(basketballMatch.key_tag_evidence) && basketballMatch.key_tag_evidence.length > 0 ? basketballMatch.key_tag_evidence.map((ev, i) => (
+                          <li key={i}>{ev}</li>
+                        )) : <li>{basketballMatch.key_tag_evidence ? String(basketballMatch.key_tag_evidence) : "No analysis available."}</li>}
+                      </ul>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                      <p>Scanning for high-confidence NBA props...</p>
+                      <p className="text-xs mt-2">Targeting &gt;60% confidence</p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-3 border-t border-slate-700 bg-slate-800/50 text-center">
                   <a
