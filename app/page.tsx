@@ -31,7 +31,7 @@ const i18n = {
   },
 };
 
-import { getTopMatches, getCapitalGrowth, getBasketballMatch, MatchData, CapitalData, BasketballMatchData } from './actions';
+import { getTopMatches, getCapitalGrowth, getBasketballMatch, getBasketballSignals, MatchData, CapitalData, BasketballMatchData } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
@@ -39,6 +39,7 @@ export default function Home() {
   const [selectedTimeZone, setSelectedTimeZone] = useState<string>("Asia/Shanghai");
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [basketballMatch, setBasketballMatch] = useState<BasketballMatchData | null>(null);
+  const [basketballSignals, setBasketballSignals] = useState<BasketballMatchData[]>([]);
   const [capitalData, setCapitalData] = useState<CapitalData[]>([]);
 
   useEffect(() => {
@@ -106,6 +107,10 @@ export default function Home() {
     getBasketballMatch(startUTC.toISOString(), endUTC.toISOString())
       .then(data => setBasketballMatch(data))
       .catch(err => console.error("Failed to load basketball match:", err));
+
+    getBasketballSignals(startUTC.toISOString(), endUTC.toISOString())
+      .then(data => setBasketballSignals(data))
+      .catch(err => console.error("Failed to load basketball signals:", err));
       
   }, [selectedTimeZone, timeZones]);
 
@@ -583,29 +588,37 @@ export default function Home() {
                   <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider">
                     Signals
                   </h4>
-                  <span className="text-[10px] font-bold text-profit bg-green-50 px-2 py-0.5 rounded border border-green-100">
-                    2W-0L
-                  </span>
+                  {basketballSignals.length > 0 && (
+                    <span className="text-[10px] font-bold text-profit bg-green-50 px-2 py-0.5 rounded border border-green-100">
+                      {basketballSignals.length} Active
+                    </span>
+                  )}
                 </div>
-                <div className="flex-1 p-3 space-y-2">
-                  <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                    <div>
-                      <div className="font-bold text-primary">Curry O25.5</div>
-                      <div className="text-muted">Yesterday</div>
+                <div className="flex-1 p-3 space-y-2 overflow-auto custom-scrollbar">
+                  {basketballSignals.length > 0 ? (
+                    basketballSignals.map((signal, index) => (
+                      <div key={index} className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
+                        <div>
+                          <div className="font-bold text-primary">{signal.home_name} vs {signal.away_name}</div>
+                          <div className="text-muted flex gap-2">
+                            <span>{new Date(signal.fixture_date).toLocaleTimeString('en-GB', {
+                              timeZone: selectedTimeZone,
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</span>
+                            <span className="text-nba font-semibold">{signal.predict_winner}</span>
+                          </div>
+                        </div>
+                        <span className="font-bold text-white bg-nba px-1.5 py-0.5 rounded">
+                          {Math.round(signal.confidence * 100)}%
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-slate-400 text-xs py-4">
+                      No signals found for this period.
                     </div>
-                    <span className="font-bold text-profit bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
-                      WIN
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] bg-white p-2.5 rounded border border-border shadow-sm">
-                    <div>
-                      <div className="font-bold text-primary">LeBron U24.5</div>
-                      <div className="text-muted">Yesterday</div>
-                    </div>
-                    <span className="font-bold text-profit bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
-                      WIN
-                    </span>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

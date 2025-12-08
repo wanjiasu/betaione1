@@ -232,3 +232,46 @@ export async function getBasketballMatch(startUTC: string, endUTC: string): Prom
     return null;
   }
 }
+
+export async function getBasketballSignals(startUTC: string, endUTC: string): Promise<BasketballMatchData[]> {
+  try {
+    const client = await basketballPool.connect();
+    try {
+      const query = `
+        SELECT 
+          t2.home_name, 
+          t2.away_name, 
+          t2.fixture_date, 
+          t1.predict_winner, 
+          t1.confidence
+        FROM 
+          (SELECT fixture_id, predict_winner, confidence 
+           FROM ai_eval 
+           WHERE if_bet=1 AND confidence > 0.6) t1 
+        INNER JOIN 
+          (SELECT fixture_id, home_name, away_name, fixture_date, result 
+           FROM fixtures
+           WHERE fixture_date BETWEEN $1 AND $2) t2 
+        ON t1.fixture_id = t2.fixture_id
+        ORDER BY t1.confidence DESC
+        LIMIT 5;
+      `;
+      
+      const res = await client.query(query, [startUTC, endUTC]);
+      
+      return res.rows.map(row => ({
+        home_name: row.home_name,
+        away_name: row.away_name,
+        fixture_date: row.fixture_date.toISOString(),
+        predict_winner: String(row.predict_winner),
+        confidence: parseFloat(row.confidence),
+        key_tag_evidence: [] // Not needed for signals list
+      }));
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Basketball signals query error:', error);
+    return [];
+  }
+}
