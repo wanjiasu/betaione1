@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Send, Wifi, Terminal, Zap, PlusCircle, Plus } from "lucide-react";
 
 type Language = "en" | "zh";
@@ -31,13 +31,14 @@ const i18n = {
   },
 };
 
-import { getTopMatches, MatchData } from './actions';
+import { getTopMatches, getCapitalGrowth, MatchData, CapitalData } from './actions';
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
   const [timeZones, setTimeZones] = useState<TimeZone[]>([]);
   const [selectedTimeZone, setSelectedTimeZone] = useState<string>("Asia/Shanghai");
   const [matches, setMatches] = useState<MatchData[]>([]);
+  const [capitalData, setCapitalData] = useState<CapitalData[]>([]);
 
   useEffect(() => {
     // Load timezones
@@ -52,6 +53,11 @@ export default function Home() {
         }
       })
       .catch((err) => console.error("Failed to load timezones:", err));
+      
+    // Load capital growth data
+    getCapitalGrowth()
+      .then(data => setCapitalData(data))
+      .catch(err => console.error("Failed to load capital data:", err));
 
     const userLang = navigator.language;
     if (userLang && userLang.startsWith("zh")) {
@@ -100,9 +106,37 @@ export default function Home() {
 
   const t = i18n[lang];
   const matchData = matches.length > 0 ? matches[0] : null;
+  const lastCapital = capitalData.length > 0 ? capitalData[capitalData.length - 1] : null;
+  const prevCapital = capitalData.length > 1 ? capitalData[capitalData.length - 2] : null;
+  const profitChange = lastCapital && prevCapital 
+    ? ((lastCapital.capital - prevCapital.capital) / prevCapital.capital * 100).toFixed(2)
+    : "0.00";
+  const isProfit = parseFloat(profitChange) >= 0;
+
+  // Chart Generation Logic
+  const chartPoints = useMemo(() => {
+    if (capitalData.length === 0) return "";
+    
+    const maxCapital = Math.max(...capitalData.map(d => d.capital));
+    const minCapital = Math.min(...capitalData.map(d => d.capital));
+    const range = maxCapital - minCapital || 1;
+    
+    // SVG Viewport: width 600, height 300
+    const width = 600;
+    const height = 300;
+    
+    const points = capitalData.map((d, i) => {
+      const x = (i / (capitalData.length - 1)) * width;
+      // Invert Y axis because SVG 0 is at top
+      const y = height - ((d.capital - minCapital) / range) * height; 
+      return `${x},${y}`;
+    }).join(" ");
+    
+    return `M${points}`;
+  }, [capitalData]);
 
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground selection:bg-tech/30">
       <div className="fintech-bg absolute inset-0 pointer-events-none fixed"></div>
 
       <div className="bg-primary text-white h-9 flex items-center overflow-hidden relative z-50 text-[11px] font-medium border-b border-slate-800">
@@ -231,26 +265,25 @@ export default function Home() {
                     <div>
                       <div className="flex justify-between text-[10px] text-slate-500 font-mono mb-1">
                         <span>START (Day 1)</span>
-                        <span>CURRENT (Day 58)</span>
+                        <span>CURRENT (Day {capitalData.length})</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="text-sm text-slate-400 font-mono">$1,000</span>
                         <span className="text-xs text-slate-600">→</span>
-                        <span className="text-2xl font-black text-white font-mono">$9,164.96</span>
+                        <span className="text-2xl font-black text-white font-mono">${lastCapital ? lastCapital.capital.toLocaleString() : "---"}</span>
                       </div>
                     </div>
 
                     <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
                       <div className="text-[10px] text-red-400 font-bold mb-1">
-                        LAST 24H ACTION (DEC 5)
+                        LAST 24H ACTION {lastCapital ? `(${new Date(lastCapital.day).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}).toUpperCase()})` : ""}
                       </div>
                       <div className="text-[10px] text-slate-300 font-mono leading-tight space-y-1">
                         <div className="flex justify-between">
-                          <span>Man Utd ML @ 1.46</span> <span>❌</span>
-                        </div>
-                        <div className="flex justify-between">
                           <span>Result:</span>{" "}
-                          <span className="text-red-400 font-bold">-20% Drawdown</span>
+                          <span className={`${isProfit ? "text-profit" : "text-red-400"} font-bold`}>
+                            {isProfit ? "+" : ""}{profitChange}% {isProfit ? "Growth" : "Drawdown"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -269,34 +302,27 @@ export default function Home() {
                   className="w-full h-full overflow-visible"
                   preserveAspectRatio="none"
                 >
-                  <g className="chart-grid">
-                    <line x1="0" y1="50" x2="600" y2="50" />
-                    <line x1="0" y1="120" x2="600" y2="120" />
-                    <line x1="0" y1="190" x2="600" y2="190" />
-                    <line x1="0" y1="260" x2="600" y2="260" />
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#059669" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="#059669" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <g className="grid-lines opacity-20">
+                    <line x1="0" y1="260" x2="600" y2="260" stroke="#fff" />
+                    <line x1="0" y1="190" x2="600" y2="190" stroke="#fff" strokeDasharray="4 4" />
+                    <line x1="0" y1="120" x2="600" y2="120" stroke="#fff" strokeDasharray="4 4" />
+                    <line x1="0" y1="50" x2="600" y2="50" stroke="#fff" strokeDasharray="4 4" />
                   </g>
-                  <g className="chart-axis">
-                    <text x="10" y="45">
-                      $12k
-                    </text>
-                    <text x="10" y="255">
-                      $1k
-                    </text>
-                    <text x="560" y="285">
-                      Day 58
-                    </text>
-                  </g>
-                  <path
-                    d="M10,260 L30,250 L50,255 L70,230 L90,240 L110,210 L130,220 L150,190 L170,160 L190,180 L210,150 L230,170 L250,140 L270,110 L290,130 L310,100 L330,110 L350,90 L370,100 L390,70 L410,80 L430,50 L450,70 L470,40 L490,60 L510,30 L530,20 L550,10 L560,90"
-                    fill="none"
-                    stroke="#059669"
-                    strokeWidth="2.5"
-                    className="chart-line"
-                  />
-                  <line x1="550" y1="10" x2="560" y2="90" stroke="#DC2626" strokeWidth="3" />
-                  <circle cx="10" cy="260" r="3" fill="#059669" />
-                  <circle cx="550" cy="10" r="4" fill="#fff" />
-                  <circle cx="560" cy="90" r="4" fill="#DC2626" />
+                  {chartPoints && (
+                    <path
+                      d={chartPoints}
+                      fill="none"
+                      stroke="#059669"
+                      strokeWidth="2.5"
+                      className="chart-line"
+                    />
+                  )}
                 </svg>
               </div>
             </div>
@@ -648,6 +674,6 @@ export default function Home() {
       <footer className="py-8 bg-primary text-slate-400 text-[10px] text-center">
         <p>&copy; 2025 Betaione Systems. Not a bookmaker. 18+ Only.</p>
       </footer>
-    </>
+    </div>
   );
 }

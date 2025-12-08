@@ -16,6 +16,96 @@ export interface MatchData {
   fixture_date: string;
 }
 
+export interface CapitalData {
+  day: string;
+  capital: number;
+}
+
+export async function getCapitalGrowth(): Promise<CapitalData[]> {
+  try {
+    const client = await pool.connect();
+    try {
+      const query = `
+        WITH RECURSIVE 
+        fixtures AS ( 
+            SELECT (fixture_date + interval '8 hour')::date AS day, 
+                   t1.fixture_id, home_odd, draw_odd, away_odd, 
+                   predict_winner, result, confidence 
+            FROM ( 
+                SELECT fixture_id, predict_winner, confidence, 
+                       home_odd, draw_odd, away_odd, result 
+                FROM ai_eval 
+                WHERE if_bet=1 
+                  AND home_odd IS NOT NULL 
+                  AND home_odd <> '未找到赔率' 
+                  AND result IS NOT NULL 
+            ) t1 
+            INNER JOIN ( 
+                SELECT fixture_id, fixture_date 
+                FROM api_football_fixtures 
+            ) t2 ON t1.fixture_id=t2.fixture_id 
+        ), 
+        ranked AS ( 
+            SELECT *, 
+                   ROW_NUMBER() OVER (PARTITION BY day ORDER BY confidence DESC) AS rn 
+            FROM fixtures 
+        ), 
+        daily_top AS ( 
+            SELECT day, fixture_id, predict_winner, result, 
+                   CASE predict_winner 
+                        WHEN 3 THEN home_odd::numeric 
+                        WHEN 1 THEN draw_odd::numeric 
+                        WHEN 0 THEN away_odd::numeric 
+                   END::numeric AS win_odd 
+            FROM ranked 
+            WHERE rn <= 5 
+        ), 
+        days AS ( 
+            SELECT DISTINCT day FROM daily_top ORDER BY day 
+        ), 
+        rec AS ( 
+            SELECT (SELECT MIN(day) FROM days) AS day, 
+                   CAST(1000 AS numeric(12,2)) AS capital 
+            UNION ALL 
+            SELECT d.day, 
+                   CAST( 
+                       ROUND( 
+                           ( 
+                               ((5 - (SELECT COUNT(*) FROM daily_top t WHERE t.day = rec.day)) * (rec.capital / 5)) 
+                               + 
+                               ( 
+                                   SELECT SUM( 
+                                       (rec.capital / 5) * 
+                                       CASE WHEN t.predict_winner = t.result 
+                                            THEN t.win_odd ELSE 0 END 
+                                   ) 
+                                   FROM daily_top t 
+                                   WHERE t.day = rec.day 
+                               ) 
+                           ), 2 
+                       ) AS numeric(12,2) 
+                   ) AS capital 
+            FROM rec 
+            JOIN days d ON d.day > rec.day 
+            WHERE d.day = (SELECT MIN(day) FROM days WHERE day > rec.day) 
+        ) 
+        SELECT * FROM rec WHERE day < (CURRENT_DATE - INTERVAL '1 day') ORDER BY day;
+      `;
+      
+      const res = await client.query(query);
+      return res.rows.map(row => ({
+        day: row.day.toISOString().split('T')[0],
+        capital: parseFloat(row.capital)
+      }));
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Capital query error:', error);
+    return [];
+  }
+}
+
 export async function getTopMatches(startUTC: string, endUTC: string): Promise<MatchData[]> {
   try {
     const client = await pool.connect();
