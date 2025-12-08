@@ -275,3 +275,49 @@ export async function getBasketballSignals(startUTC: string, endUTC: string): Pr
     return [];
   }
 }
+
+export async function getFootballFixtureReport(fixtureId: string): Promise<string | null> {
+  try {
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT report_md
+        FROM ai_eval
+        WHERE fixture_id = $1
+      `;
+      const res = await client.query(query, [fixtureId]);
+      if (res.rows.length > 0) {
+        return res.rows[0].report_md;
+      }
+      return null;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Report query error:', error);
+    return null;
+  }
+}
+
+export async function getBasketballFixtureReport(fixtureId: string): Promise<string | null> {
+  try {
+    const client = await basketballPool.connect();
+    try {
+      const query = `
+        SELECT report_md
+        FROM ai_eval
+        WHERE fixture_id = $1
+      `;
+      const res = await client.query(query, [fixtureId]);
+      if (res.rows.length > 0) {
+        return res.rows[0].report_md;
+      }
+      return null;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Basketball report query error:', error);
+    return null;
+  }
+}

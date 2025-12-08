@@ -28,6 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased relative selection:bg-tech selection:text-white`}
+        suppressHydrationWarning
       >
         {children}
       </body>
