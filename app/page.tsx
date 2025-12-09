@@ -111,11 +111,14 @@ export default function Home() {
       })
       .catch(err => console.error("Failed to fetch match data:", err));
 
-    getBasketballMatch(startUTC.toISOString(), endUTC.toISOString())
+    // For basketball, extend range to 4 days (96 hours)
+    const basketballEndUTC = new Date(localMidnight + (96 * 3600 * 1000) - 1 - (offset * 3600 * 1000));
+
+    getBasketballMatch(startUTC.toISOString(), basketballEndUTC.toISOString())
       .then(data => setBasketballMatch(data))
       .catch(err => console.error("Failed to load basketball match:", err));
 
-    getBasketballSignals(startUTC.toISOString(), endUTC.toISOString())
+    getBasketballSignals(startUTC.toISOString(), basketballEndUTC.toISOString())
       .then(data => setBasketballSignals(data))
       .catch(err => console.error("Failed to load basketball signals:", err));
       
@@ -594,7 +597,7 @@ export default function Home() {
                 </div>
                 <div className="p-3 border-t border-slate-700 bg-slate-800/50 text-center">
                   <a
-                    href="https://t.me/betaionebot"
+                    href="https://t.me/betaionetest_bot"
                     target="_blank"
                     className="inline-flex items-center gap-2 text-xs font-bold text-nba hover:text-white transition"
                   >
@@ -621,8 +624,10 @@ export default function Home() {
                           <div>
                             <div className="font-bold text-primary group-hover:text-nba transition-colors">{signal.home_name} vs {signal.away_name}</div>
                             <div className="text-muted flex gap-2">
-                              <span>{new Date(signal.fixture_date).toLocaleTimeString('en-GB', {
+                              <span>{new Date(signal.fixture_date).toLocaleString('en-GB', {
                                 timeZone: selectedTimeZone,
+                                month: 'numeric',
+                                day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })}</span>
